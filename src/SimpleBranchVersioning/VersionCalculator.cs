@@ -28,7 +28,7 @@ public static class VersionCalculator
         }
 
         // For all other branches: replace / with . and append commit ID
-        var normalizedBranch = branch.Replace('/', '.');
+        string normalizedBranch = branch.Replace('/', '.');
         return $"{normalizedBranch}.{commitId}";
     }
 }

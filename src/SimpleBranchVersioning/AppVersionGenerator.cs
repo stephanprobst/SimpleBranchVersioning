@@ -18,8 +18,8 @@ public sealed class AppVersionGenerator : IIncrementalGenerator
         var buildPropertiesProvider = context.AnalyzerConfigOptionsProvider
             .Select((provider, _) =>
             {
-                provider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
-                provider.GlobalOptions.TryGetValue("build_property.ProjectDir", out var projectDir);
+                provider.GlobalOptions.TryGetValue("build_property.RootNamespace", out string? rootNamespace);
+                provider.GlobalOptions.TryGetValue("build_property.ProjectDir", out string? projectDir);
 
                 // Read git info from files
                 var (branch, commitId) = ReadGitInfo(projectDir);
@@ -44,13 +44,13 @@ public sealed class AppVersionGenerator : IIncrementalGenerator
         {
             var (buildProps, config) = input;
 
-            var branch = string.IsNullOrEmpty(buildProps.Branch) ? "unknown" : buildProps.Branch!;
-            var commitId = string.IsNullOrEmpty(buildProps.CommitId) ? "0000000" : buildProps.CommitId!;
-            var version = VersionCalculator.Calculate(branch, commitId);
-            var namespaceName = config?.Namespace ?? buildProps.RootNamespace ?? "SimpleBranchVersioning.Generated";
-            var className = config?.ClassName ?? "AppVersion";
+            string branch = string.IsNullOrEmpty(buildProps.Branch) ? "unknown" : buildProps.Branch!;
+            string commitId = string.IsNullOrEmpty(buildProps.CommitId) ? "0000000" : buildProps.CommitId!;
+            string version = VersionCalculator.Calculate(branch, commitId);
+            string namespaceName = config?.Namespace ?? buildProps.RootNamespace ?? "SimpleBranchVersioning.Generated";
+            string className = config?.ClassName ?? "AppVersion";
 
-            var source = GenerateSource(namespaceName, className, version, branch, commitId);
+            string source = GenerateSource(namespaceName, className, version, branch, commitId);
             ctx.AddSource($"{className}.g.cs", SourceText.From(source, Encoding.UTF8));
         });
     }
@@ -126,7 +126,7 @@ namespace {namespaceName}
 
         while (dir != null)
         {
-            var gitPath = Path.Combine(dir.FullName, ".git");
+            string gitPath = Path.Combine(dir.FullName, ".git");
             if (Directory.Exists(gitPath))
             {
                 gitDir = gitPath;
@@ -142,13 +142,13 @@ namespace {namespaceName}
         }
 
         // Read HEAD file
-        var headPath = Path.Combine(gitDir, "HEAD");
+        string headPath = Path.Combine(gitDir, "HEAD");
         if (!File.Exists(headPath))
         {
             return (null, null);
         }
 
-        var headContent = File.ReadAllText(headPath).Trim();
+        string headContent = File.ReadAllText(headPath).Trim();
 
         string? branch = null;
         string? commitId = null;
@@ -159,10 +159,10 @@ namespace {namespaceName}
             branch = headContent.Substring(16);
 
             // Read commit from ref file
-            var refPath = Path.Combine(gitDir, "refs", "heads", branch);
+            string refPath = Path.Combine(gitDir, "refs", "heads", branch);
             if (File.Exists(refPath))
             {
-                var commit = File.ReadAllText(refPath).Trim();
+                string commit = File.ReadAllText(refPath).Trim();
                 if (commit.Length >= 7)
                 {
                     commitId = commit.Substring(0, 7);
