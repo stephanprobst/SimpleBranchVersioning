@@ -1,0 +1,20 @@
+<Project>
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!-- Analyzers -->
+  <ItemGroup>
+    <PackageReference Include="Meziantou.Analyzer" Version="2.0.266" PrivateAssets="all" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.17.0.131074" PrivateAssets="all" />
+    <PackageReference Include="Roslynator.Analyzers" Version="4.15.0" PrivateAssets="all" />
+    <PackageReference Include="AsyncFixer" Version="2.1.0" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

@@ -8,8 +8,9 @@ namespace SimpleBranchVersioning;
 public static class VersionCalculator
 {
     private static readonly Regex ReleasePattern = new(
-        @"^release/v?(\d+\.\d+\.\d+.*)$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        @"^release/v?(?<version>\d+\.\d+\.\d+.*)$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture,
+        TimeSpan.FromSeconds(1));
 
     /// <summary>
     /// Calculates the version string based on branch name and commit ID.
@@ -22,7 +23,9 @@ public static class VersionCalculator
         // Check for release branch pattern
         var match = ReleasePattern.Match(branch);
         if (match.Success)
-            return match.Groups[1].Value;
+        {
+            return match.Groups["version"].Value;
+        }
 
         // For all other branches: replace / with . and append commit ID
         var normalizedBranch = branch.Replace('/', '.');

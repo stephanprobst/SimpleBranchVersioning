@@ -2,6 +2,7 @@ using Xunit;
 
 namespace SimpleBranchVersioning.Tests;
 
+#pragma warning disable S4144 // Methods should not have identical implementations - Test methods intentionally test different inputs
 public class VersionCalculatorTests
 {
     [Theory]
@@ -11,7 +12,7 @@ public class VersionCalculatorTests
     [InlineData("release/v10.20.30", "ghi9012", "10.20.30")]
     public void Calculate_ReleaseBranch_ReturnsSemanticVersion(string branch, string commitId, string expected)
     {
-        var result = VersionCalculator.Calculate(branch, commitId);
+        string result = VersionCalculator.Calculate(branch, commitId);
 
         Assert.Equal(expected, result);
     }
@@ -22,7 +23,7 @@ public class VersionCalculatorTests
     [InlineData("release/1.0.0-alpha", "def5678", "1.0.0-alpha")]
     public void Calculate_ReleaseBranchWithPrerelease_ReturnsFullVersion(string branch, string commitId, string expected)
     {
-        var result = VersionCalculator.Calculate(branch, commitId);
+        string result = VersionCalculator.Calculate(branch, commitId);
 
         Assert.Equal(expected, result);
     }
@@ -34,7 +35,7 @@ public class VersionCalculatorTests
     [InlineData("hotfix/critical", "jkl3456", "hotfix.critical.jkl3456")]
     public void Calculate_FeatureOrBugfixBranch_ReturnsNormalizedBranchWithCommit(string branch, string commitId, string expected)
     {
-        var result = VersionCalculator.Calculate(branch, commitId);
+        string result = VersionCalculator.Calculate(branch, commitId);
 
         Assert.Equal(expected, result);
     }
@@ -45,7 +46,7 @@ public class VersionCalculatorTests
     [InlineData("develop", "ghi9012", "develop.ghi9012")]
     public void Calculate_MainBranch_ReturnsBranchWithCommit(string branch, string commitId, string expected)
     {
-        var result = VersionCalculator.Calculate(branch, commitId);
+        string result = VersionCalculator.Calculate(branch, commitId);
 
         Assert.Equal(expected, result);
     }
@@ -55,7 +56,7 @@ public class VersionCalculatorTests
     [InlineData("refs/heads/main", "def5678", "refs.heads.main.def5678")]
     public void Calculate_NestedBranch_ReplacesAllSlashes(string branch, string commitId, string expected)
     {
-        var result = VersionCalculator.Calculate(branch, commitId);
+        string result = VersionCalculator.Calculate(branch, commitId);
 
         Assert.Equal(expected, result);
     }
@@ -63,8 +64,9 @@ public class VersionCalculatorTests
     [Fact]
     public void Calculate_ReleaseWithoutVersion_TreatedAsRegularBranch()
     {
-        var result = VersionCalculator.Calculate("release/feature-x", "abc1234");
+        string result = VersionCalculator.Calculate("release/feature-x", "abc1234");
 
         Assert.Equal("release.feature-x.abc1234", result);
     }
 }
+#pragma warning restore S4144
