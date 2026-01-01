@@ -1,3 +1,5 @@
 ﻿using SimpleBranchVersioning.ExampleApp;
 
-Console.WriteLine("Hello, World! Version: " + AppVersion.Version);
+Console.WriteLine($"Version:  {AppVersion.Version}");
+Console.WriteLine($"Branch:   {AppVersion.Branch}");
+Console.WriteLine($"CommitId: {AppVersion.CommitId}");
