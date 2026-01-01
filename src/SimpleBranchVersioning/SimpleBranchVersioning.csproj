@@ -32,7 +32,6 @@
 
         <!-- Pack build files for consumer projects -->
         <None Include="build\SimpleBranchVersioning.props" Pack="true" PackagePath="build" />
-        <None Include="build\SimpleBranchVersioning.targets" Pack="true" PackagePath="build" />
     </ItemGroup>
 
 </Project>

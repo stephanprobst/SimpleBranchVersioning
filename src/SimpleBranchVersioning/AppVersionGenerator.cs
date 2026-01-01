@@ -1,7 +1,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SimpleBranchVersioning;
 
@@ -13,13 +15,16 @@ public sealed class AppVersionGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Get git info and root namespace from MSBuild properties
+        // Get project directory and namespace from MSBuild properties
         var buildPropertiesProvider = context.AnalyzerConfigOptionsProvider
             .Select((provider, _) =>
             {
                 provider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
-                provider.GlobalOptions.TryGetValue("build_property.SimpleBranchVersioning_Branch", out var branch);
-                provider.GlobalOptions.TryGetValue("build_property.SimpleBranchVersioning_CommitId", out var commitId);
+                provider.GlobalOptions.TryGetValue("build_property.ProjectDir", out var projectDir);
+
+                // Read git info from files
+                var (branch, commitId) = ReadGitInfo(projectDir);
+
                 return new BuildProperties(rootNamespace, branch, commitId);
             });
 
@@ -104,6 +109,63 @@ namespace {namespaceName}
         public const string CommitId = ""{commitId}"";
     }}
 }}";
+    }
+
+    private static (string? branch, string? commitId) ReadGitInfo(string? projectDir)
+    {
+        if (string.IsNullOrEmpty(projectDir))
+            return (null, null);
+
+        // Find .git directory by walking up the directory tree
+        var dir = new DirectoryInfo(projectDir);
+        string? gitDir = null;
+
+        while (dir != null)
+        {
+            var gitPath = Path.Combine(dir.FullName, ".git");
+            if (Directory.Exists(gitPath))
+            {
+                gitDir = gitPath;
+                break;
+            }
+            dir = dir.Parent;
+        }
+
+        if (gitDir == null)
+            return (null, null);
+
+        // Read HEAD file
+        var headPath = Path.Combine(gitDir, "HEAD");
+        if (!File.Exists(headPath))
+            return (null, null);
+
+        var headContent = File.ReadAllText(headPath).Trim();
+
+        string? branch = null;
+        string? commitId = null;
+
+        // Parse HEAD - either "ref: refs/heads/branch-name" or a commit hash
+        if (headContent.StartsWith("ref: refs/heads/"))
+        {
+            branch = headContent.Substring(16);
+
+            // Read commit from ref file
+            var refPath = Path.Combine(gitDir, "refs", "heads", branch);
+            if (File.Exists(refPath))
+            {
+                var commit = File.ReadAllText(refPath).Trim();
+                if (commit.Length >= 7)
+                    commitId = commit.Substring(0, 7);
+            }
+        }
+        else if (headContent.Length >= 7 && Regex.IsMatch(headContent, "^[0-9a-f]+$"))
+        {
+            // Detached HEAD - commit hash directly in HEAD
+            branch = "detached";
+            commitId = headContent.Substring(0, 7);
+        }
+
+        return (branch, commitId);
     }
 
     private sealed record BuildProperties(string? RootNamespace, string? Branch, string? CommitId);

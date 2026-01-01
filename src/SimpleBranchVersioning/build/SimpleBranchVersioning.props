@@ -1,14 +1,7 @@
 <Project>
-    <PropertyGroup>
-        <!-- Default values, will be overwritten by targets if git info is found -->
-        <SimpleBranchVersioning_Branch></SimpleBranchVersioning_Branch>
-        <SimpleBranchVersioning_CommitId></SimpleBranchVersioning_CommitId>
-    </PropertyGroup>
-
     <ItemGroup>
         <!-- Make these properties visible to the source generator -->
         <CompilerVisibleProperty Include="RootNamespace" />
-        <CompilerVisibleProperty Include="SimpleBranchVersioning_Branch" />
-        <CompilerVisibleProperty Include="SimpleBranchVersioning_CommitId" />
+        <CompilerVisibleProperty Include="ProjectDir" />
     </ItemGroup>
 </Project>
