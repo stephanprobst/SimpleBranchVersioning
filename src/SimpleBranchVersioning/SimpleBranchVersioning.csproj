@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <IsRoslynComponent>true</IsRoslynComponent>
+
+        <!-- NuGet Package Properties -->
+        <PackageId>SimpleBranchVersioning</PackageId>
+        <Version>0.1.0</Version>
+        <Authors>SimpleBranchVersioning Contributors</Authors>
+        <Description>A .NET source generator that provides simple branch-based versioning.</Description>
+        <PackageTags>source-generator;versioning;git;roslyn</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryType>git</RepositoryType>
+
+        <!-- Analyzer Package Configuration -->
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <DevelopmentDependency>true</DevelopmentDependency>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Pack the analyzer/generator DLL -->
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+
+        <!-- Pack build files for consumer projects -->
+        <None Include="build\SimpleBranchVersioning.props" Pack="true" PackagePath="build" />
+        <None Include="build\SimpleBranchVersioning.targets" Pack="true" PackagePath="build" />
+    </ItemGroup>
+
+</Project>

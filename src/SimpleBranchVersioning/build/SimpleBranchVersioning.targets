@@ -1,0 +1,53 @@
+<Project>
+    <Target Name="SimpleBranchVersioning_ReadGitInfo" BeforeTargets="CoreCompile">
+        <PropertyGroup>
+            <SimpleBranchVersioning_GitDir>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), '.git'))\.git</SimpleBranchVersioning_GitDir>
+        </PropertyGroup>
+
+        <!-- Check if .git directory exists -->
+        <PropertyGroup Condition="Exists('$(SimpleBranchVersioning_GitDir)')">
+            <SimpleBranchVersioning_HeadFile>$(SimpleBranchVersioning_GitDir)\HEAD</SimpleBranchVersioning_HeadFile>
+        </PropertyGroup>
+
+        <!-- Read HEAD file -->
+        <ReadLinesFromFile File="$(SimpleBranchVersioning_HeadFile)" Condition="Exists('$(SimpleBranchVersioning_HeadFile)')">
+            <Output TaskParameter="Lines" ItemName="SimpleBranchVersioning_HeadLines" />
+        </ReadLinesFromFile>
+
+        <!-- Parse branch from HEAD (format: "ref: refs/heads/branch-name") -->
+        <PropertyGroup Condition="'@(SimpleBranchVersioning_HeadLines)' != ''">
+            <SimpleBranchVersioning_HeadContent>@(SimpleBranchVersioning_HeadLines)</SimpleBranchVersioning_HeadContent>
+            <SimpleBranchVersioning_Branch Condition="$(SimpleBranchVersioning_HeadContent.StartsWith('ref: refs/heads/'))">$(SimpleBranchVersioning_HeadContent.Substring(16))</SimpleBranchVersioning_Branch>
+            <SimpleBranchVersioning_Branch Condition="'$(SimpleBranchVersioning_Branch)' == ''">detached</SimpleBranchVersioning_Branch>
+        </PropertyGroup>
+
+        <!-- Determine ref file path -->
+        <PropertyGroup Condition="'$(SimpleBranchVersioning_Branch)' != '' AND '$(SimpleBranchVersioning_Branch)' != 'detached'">
+            <SimpleBranchVersioning_RefFile>$(SimpleBranchVersioning_GitDir)\refs\heads\$(SimpleBranchVersioning_Branch)</SimpleBranchVersioning_RefFile>
+        </PropertyGroup>
+
+        <!-- Read commit from ref file -->
+        <ReadLinesFromFile File="$(SimpleBranchVersioning_RefFile)" Condition="Exists('$(SimpleBranchVersioning_RefFile)')">
+            <Output TaskParameter="Lines" ItemName="SimpleBranchVersioning_CommitLines" />
+        </ReadLinesFromFile>
+
+        <!-- Get first 7 characters of commit -->
+        <PropertyGroup Condition="'@(SimpleBranchVersioning_CommitLines)' != ''">
+            <SimpleBranchVersioning_FullCommit>@(SimpleBranchVersioning_CommitLines)</SimpleBranchVersioning_FullCommit>
+            <SimpleBranchVersioning_CommitId>$(SimpleBranchVersioning_FullCommit.Substring(0, 7))</SimpleBranchVersioning_CommitId>
+        </PropertyGroup>
+
+        <!-- Fallback: try to read commit from HEAD directly (detached HEAD) -->
+        <PropertyGroup Condition="'$(SimpleBranchVersioning_CommitId)' == '' AND '$(SimpleBranchVersioning_HeadContent)' != '' AND !$(SimpleBranchVersioning_HeadContent.StartsWith('ref:'))">
+            <SimpleBranchVersioning_CommitId>$(SimpleBranchVersioning_HeadContent.Substring(0, 7))</SimpleBranchVersioning_CommitId>
+        </PropertyGroup>
+
+        <!-- Fallback if git info not found -->
+        <PropertyGroup Condition="'$(SimpleBranchVersioning_Branch)' == ''">
+            <SimpleBranchVersioning_Branch>unknown</SimpleBranchVersioning_Branch>
+        </PropertyGroup>
+        <PropertyGroup Condition="'$(SimpleBranchVersioning_CommitId)' == ''">
+            <SimpleBranchVersioning_CommitId>0000000</SimpleBranchVersioning_CommitId>
+        </PropertyGroup>
+    </Target>
+</Project>
