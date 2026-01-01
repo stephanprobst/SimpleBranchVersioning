@@ -3,6 +3,7 @@
     <Project Path="src/SimpleBranchVersioning/SimpleBranchVersioning.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/SimpleBranchVersioning.ConfiguredApp/SimpleBranchVersioning.ConfiguredApp.csproj" />
     <Project Path="tests/SimpleBranchVersioning.ExampleApp/SimpleBranchVersioning.ExampleApp.csproj" />
     <Project Path="tests/SimpleBranchVersioning.Tests/SimpleBranchVersioning.Tests.csproj" />
   </Folder>
