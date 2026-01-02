@@ -1,3 +1,12 @@
-﻿Console.WriteLine($"Version:  {AppVersion.Version}");
-Console.WriteLine($"Branch:   {AppVersion.Branch}");
-Console.WriteLine($"CommitId: {AppVersion.CommitId}");
+Console.WriteLine("=== SimpleBranchVersioning ExampleApp Demo ===");
+Console.WriteLine();
+Console.WriteLine("Basic Info:");
+Console.WriteLine($"  Version:  {AppVersion.Version}");
+Console.WriteLine($"  Branch:   {AppVersion.Branch}");
+Console.WriteLine($"  CommitId: {AppVersion.CommitId}");
+Console.WriteLine();
+Console.WriteLine("NuGet/Assembly Versions:");
+Console.WriteLine($"  PackageVersion:       {AppVersion.PackageVersion}");
+Console.WriteLine($"  AssemblyVersion:      {AppVersion.AssemblyVersion}");
+Console.WriteLine($"  FileVersion:          {AppVersion.FileVersion}");
+Console.WriteLine($"  InformationalVersion: {AppVersion.InformationalVersion}");

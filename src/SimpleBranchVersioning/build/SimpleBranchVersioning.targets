@@ -9,10 +9,13 @@
             <OutputPath ParameterType="System.String" Required="true" />
         </ParameterGroup>
         <Task>
+            <Using Namespace="System.IO" />
             <Using Namespace="System.Reflection" />
             <Code Type="Fragment" Language="cs">
 <![CDATA[
-var assembly = Assembly.LoadFrom(AssemblyPath);
+// Load assembly from bytes to avoid file locking and assembly identity conflicts
+byte[] assemblyBytes = File.ReadAllBytes(AssemblyPath);
+var assembly = Assembly.Load(assemblyBytes);
 var writerType = assembly.GetType("SimpleBranchVersioning.Generated.VersionFileWriter");
 if (writerType != null)
 {
@@ -20,12 +23,97 @@ if (writerType != null)
     method.Invoke(null, new object[] { OutputPath });
     Log.LogMessage(MessageImportance.Normal, "Generated version file: " + OutputPath);
 }
+else
+{
+    // Fallback: search all types for one with PackageVersion field (custom class name)
+    foreach (var type in assembly.GetTypes())
+    {
+        var field = type.GetField("PackageVersion", BindingFlags.Public | BindingFlags.Static);
+        if (field != null)
+        {
+            // Found the version class, generate JSON manually
+            string version = (string)type.GetField("Version", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
+            string branch = (string)type.GetField("Branch", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
+            string commitId = (string)type.GetField("CommitId", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
+            string packageVersion = (string)field.GetValue(null) ?? "";
+            string assemblyVersion = (string)type.GetField("AssemblyVersion", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
+            string fileVersion = (string)type.GetField("FileVersion", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
+            string informationalVersion = (string)type.GetField("InformationalVersion", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
+
+            string json = "{\n" +
+                "  \"Version\": \"" + version + "\",\n" +
+                "  \"Branch\": \"" + branch + "\",\n" +
+                "  \"CommitId\": \"" + commitId + "\",\n" +
+                "  \"PackageVersion\": \"" + packageVersion + "\",\n" +
+                "  \"AssemblyVersion\": \"" + assemblyVersion + "\",\n" +
+                "  \"FileVersion\": \"" + fileVersion + "\",\n" +
+                "  \"InformationalVersion\": \"" + informationalVersion + "\"\n" +
+                "}";
+
+            Directory.CreateDirectory(Path.GetDirectoryName(OutputPath));
+            File.WriteAllText(OutputPath, json);
+            Log.LogMessage(MessageImportance.Normal, "Generated version file: " + OutputPath);
+            break;
+        }
+    }
+}
 ]]>
             </Code>
         </Task>
     </UsingTask>
 
     <Target Name="GenerateVersionFile" AfterTargets="Build" Condition="'$(GenerateVersionFile)' == 'true'">
+        <PropertyGroup>
+            <VersionFileOutputPath Condition="'$(VersionFileOutputPath)' == ''">$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(OutputPath)', 'version.json'))</VersionFileOutputPath>
+        </PropertyGroup>
+        <GenerateVersionFileTask AssemblyPath="$(TargetPath)" OutputPath="$(VersionFileOutputPath)" />
+    </Target>
+
+    <!-- Task to read PackageVersion from version.json for NuGet packaging -->
+    <UsingTask TaskName="ReadPackageVersionFromJsonTask" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+        <ParameterGroup>
+            <JsonPath ParameterType="System.String" Required="true" />
+            <PackageVersionOutput ParameterType="System.String" Output="true" />
+        </ParameterGroup>
+        <Task>
+            <Using Namespace="System.IO" />
+            <Using Namespace="System.Text.RegularExpressions" />
+            <Code Type="Fragment" Language="cs">
+<![CDATA[
+if (!File.Exists(JsonPath))
+{
+    Log.LogWarning("SimpleBranchVersioning: version.json not found at " + JsonPath);
+    PackageVersionOutput = "";
+}
+else
+{
+    string json = File.ReadAllText(JsonPath);
+    var match = Regex.Match(json, "\"PackageVersion\"\\s*:\\s*\"([^\"]*)\"");
+    PackageVersionOutput = match.Success ? match.Groups[1].Value : "";
+    Log.LogMessage(MessageImportance.Normal, "SimpleBranchVersioning: Read PackageVersion=" + PackageVersionOutput + " from " + JsonPath);
+}
+]]>
+            </Code>
+        </Task>
+    </UsingTask>
+
+    <!-- Target to set NuGet package version from branch (assembly attributes are set by source generator) -->
+    <Target Name="SetPackageVersionFromBranch"
+            AfterTargets="GenerateVersionFile"
+            DependsOnTargets="GenerateVersionFileInternal"
+            BeforeTargets="GenerateNuspec;Pack"
+            Condition="'$(SetPackageVersionFromBranch)' == 'true'">
+        <ReadPackageVersionFromJsonTask JsonPath="$(VersionFileOutputPath)">
+            <Output TaskParameter="PackageVersionOutput" PropertyName="Version" />
+            <Output TaskParameter="PackageVersionOutput" PropertyName="PackageVersion" />
+        </ReadPackageVersionFromJsonTask>
+        <Message Text="SimpleBranchVersioning: Set PackageVersion=$(PackageVersion)" Importance="normal" />
+    </Target>
+
+    <!-- Internal target to generate version.json when SetPackageVersionFromBranch is enabled -->
+    <Target Name="GenerateVersionFileInternal"
+            AfterTargets="Build"
+            Condition="'$(SetPackageVersionFromBranch)' == 'true'">
         <PropertyGroup>
             <VersionFileOutputPath Condition="'$(VersionFileOutputPath)' == ''">$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(OutputPath)', 'version.json'))</VersionFileOutputPath>
         </PropertyGroup>

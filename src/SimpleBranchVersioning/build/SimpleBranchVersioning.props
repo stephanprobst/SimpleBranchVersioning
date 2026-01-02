@@ -1,7 +1,34 @@
 <Project>
+    <PropertyGroup>
+        <!-- Default: enabled (opt-out) - set to false to disable automatic version property setting -->
+        <SetPackageVersionFromBranch Condition="'$(SetPackageVersionFromBranch)' == ''">true</SetPackageVersionFromBranch>
+        <!-- Default: include commit ID as build metadata in versions -->
+        <IncludeCommitIdMetadata Condition="'$(IncludeCommitIdMetadata)' == ''">true</IncludeCommitIdMetadata>
+
+        <!-- Disable auto-generated assembly version attributes (source generator provides these) -->
+        <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+        <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+        <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    </PropertyGroup>
+
     <ItemGroup>
         <!-- Make these properties visible to the source generator -->
         <CompilerVisibleProperty Include="RootNamespace" />
         <CompilerVisibleProperty Include="ProjectDir" />
+        <CompilerVisibleProperty Include="IncludeCommitIdMetadata" />
+    </ItemGroup>
+
+    <!-- Find the .git directory by walking up from ProjectDir (using forward slashes for cross-platform) -->
+    <PropertyGroup>
+        <SimpleBranchVersioning_GitDir Condition="Exists('$(ProjectDir).git/HEAD')">$(ProjectDir).git</SimpleBranchVersioning_GitDir>
+        <SimpleBranchVersioning_GitDir Condition="'$(SimpleBranchVersioning_GitDir)' == '' AND Exists('$(ProjectDir)../.git/HEAD')">$(ProjectDir)../.git</SimpleBranchVersioning_GitDir>
+        <SimpleBranchVersioning_GitDir Condition="'$(SimpleBranchVersioning_GitDir)' == '' AND Exists('$(ProjectDir)../../.git/HEAD')">$(ProjectDir)../../.git</SimpleBranchVersioning_GitDir>
+        <SimpleBranchVersioning_GitDir Condition="'$(SimpleBranchVersioning_GitDir)' == '' AND Exists('$(ProjectDir)../../../.git/HEAD')">$(ProjectDir)../../../.git</SimpleBranchVersioning_GitDir>
+        <SimpleBranchVersioning_GitDir Condition="'$(SimpleBranchVersioning_GitDir)' == '' AND Exists('$(ProjectDir)../../../../.git/HEAD')">$(ProjectDir)../../../../.git</SimpleBranchVersioning_GitDir>
+    </PropertyGroup>
+
+    <!-- Add git HEAD file as AdditionalFile so source generator re-runs when branch changes -->
+    <ItemGroup Condition="'$(SimpleBranchVersioning_GitDir)' != ''">
+        <AdditionalFiles Include="$(SimpleBranchVersioning_GitDir)/HEAD" Link="SimpleBranchVersioning.git.HEAD" />
     </ItemGroup>
 </Project>
