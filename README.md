@@ -61,6 +61,7 @@ public static class AppVersion
 | `SetPackageVersionFromBranch` | `true` | Automatically set NuGet package version from branch |
 | `IncludeCommitIdMetadata` | `true` | Include commit ID as build metadata in versions |
 | `GenerateVersionFile` | `false` | Generate `version.json` file during build |
+| `SimpleBranchVersioning_Branch` | (auto-detected) | Override branch name (useful for CI) |
 
 ### Custom Class Name and Namespace
 
@@ -74,15 +75,20 @@ public static class AppVersion
 
 ### GitHub Actions
 
-By default, GitHub Actions checks out PRs in detached HEAD state, which results in version `detached.<commit-id>`. To get the actual branch name, configure the checkout action:
+By default, GitHub Actions checks out PRs in detached HEAD state, which results in version `detached.<commit-id>`. To get the actual branch name while still testing the merged result, use the `SimpleBranchVersioning_Branch` property:
 
 ```yaml
-- uses: actions/checkout@v4
-  with:
-    ref: ${{ github.head_ref }}  # Checkout the actual branch, not the merge commit
+- uses: actions/checkout@v4  # Default checkout tests the merge result
+
+- name: Build
+  run: dotnet build -p:SimpleBranchVersioning_Branch=${{ github.head_ref }}
 ```
 
-For push events on branches, the default checkout works correctly.
+This approach:
+- Tests the actual merge result (catches integration issues)
+- Uses the correct branch name for versioning
+
+For push events on branches, the default checkout works correctly without any override.
 
 ### Version File
 

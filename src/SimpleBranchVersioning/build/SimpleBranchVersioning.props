@@ -4,6 +4,7 @@
         <SetPackageVersionFromBranch Condition="'$(SetPackageVersionFromBranch)' == ''">true</SetPackageVersionFromBranch>
         <!-- Default: include commit ID as build metadata in versions -->
         <IncludeCommitIdMetadata Condition="'$(IncludeCommitIdMetadata)' == ''">true</IncludeCommitIdMetadata>
+        <!-- SimpleBranchVersioning_Branch: optional override for branch name (useful for CI detached HEAD) -->
 
         <!-- Disable auto-generated assembly version attributes (source generator provides these) -->
         <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
@@ -18,6 +19,7 @@
         <CompilerVisibleProperty Include="IncludeCommitIdMetadata" />
         <CompilerVisibleProperty Include="GenerateVersionFile" />
         <CompilerVisibleProperty Include="SetPackageVersionFromBranch" />
+        <CompilerVisibleProperty Include="SimpleBranchVersioning_Branch" />
     </ItemGroup>
 
     <!-- Find the .git directory by walking up from ProjectDir (using forward slashes for cross-platform) -->

@@ -78,6 +78,7 @@ public sealed class AppVersionGenerator : IIncrementalGenerator
                 provider.GlobalOptions.TryGetValue("build_property.IncludeCommitIdMetadata", out string? includeMetadataStr);
                 provider.GlobalOptions.TryGetValue("build_property.GenerateVersionFile", out string? generateVersionFileStr);
                 provider.GlobalOptions.TryGetValue("build_property.SetPackageVersionFromBranch", out string? setPackageVersionStr);
+                provider.GlobalOptions.TryGetValue("build_property.SimpleBranchVersioning_Branch", out string? overrideBranch);
 
                 // Parse IncludeCommitIdMetadata (default: true)
                 bool includeCommitIdMetadata = !string.Equals(includeMetadataStr, "false", StringComparison.OrdinalIgnoreCase);
@@ -90,7 +91,7 @@ public sealed class AppVersionGenerator : IIncrementalGenerator
                 var (branch, commitId) = ParseGitInfo(gitInfo.HeadContent, gitInfo.GitDir)
                                        ?? ReadGitInfo(projectDir);
 
-                return new BuildProperties(rootNamespace, branch, commitId, includeCommitIdMetadata, generateVersionFile, setPackageVersionFromBranch);
+                return new BuildProperties(rootNamespace, branch, commitId, includeCommitIdMetadata, generateVersionFile, setPackageVersionFromBranch, overrideBranch);
             });
 
         // Look for AppVersionConfigAttribute in assembly attributes
@@ -120,7 +121,16 @@ public sealed class AppVersionGenerator : IIncrementalGenerator
         {
             var ((buildProps, config), hasTopLevelStatements) = input;
 
-            string branch = string.IsNullOrEmpty(buildProps.Branch) ? "unknown" : buildProps.Branch!;
+            // Use override branch if provided, otherwise use detected branch
+            string branch;
+            if (!string.IsNullOrEmpty(buildProps.OverrideBranch))
+            {
+                branch = buildProps.OverrideBranch!;
+            }
+            else
+            {
+                branch = string.IsNullOrEmpty(buildProps.Branch) ? "unknown" : buildProps.Branch!;
+            }
             string commitId = string.IsNullOrEmpty(buildProps.CommitId) ? "0000000" : buildProps.CommitId!;
 
             // Calculate all version formats
@@ -404,6 +414,6 @@ public sealed class AppVersionGenerator : IIncrementalGenerator
     }
 #pragma warning restore RS1035
 
-    private sealed record BuildProperties(string? RootNamespace, string? Branch, string? CommitId, bool IncludeCommitIdMetadata, bool GenerateVersionFile, bool SetPackageVersionFromBranch);
+    private sealed record BuildProperties(string? RootNamespace, string? Branch, string? CommitId, bool IncludeCommitIdMetadata, bool GenerateVersionFile, bool SetPackageVersionFromBranch, string? OverrideBranch);
     private sealed record AppVersionConfig(string? Namespace, string? ClassName);
 }
