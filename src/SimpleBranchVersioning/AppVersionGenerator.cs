@@ -76,15 +76,21 @@ public sealed class AppVersionGenerator : IIncrementalGenerator
                 provider.GlobalOptions.TryGetValue("build_property.RootNamespace", out string? rootNamespace);
                 provider.GlobalOptions.TryGetValue("build_property.ProjectDir", out string? projectDir);
                 provider.GlobalOptions.TryGetValue("build_property.IncludeCommitIdMetadata", out string? includeMetadataStr);
+                provider.GlobalOptions.TryGetValue("build_property.GenerateVersionFile", out string? generateVersionFileStr);
+                provider.GlobalOptions.TryGetValue("build_property.SetPackageVersionFromBranch", out string? setPackageVersionStr);
 
                 // Parse IncludeCommitIdMetadata (default: true)
                 bool includeCommitIdMetadata = !string.Equals(includeMetadataStr, "false", StringComparison.OrdinalIgnoreCase);
+
+                // Parse GenerateVersionFile (default: false) and SetPackageVersionFromBranch (default: true)
+                bool generateVersionFile = string.Equals(generateVersionFileStr, "true", StringComparison.OrdinalIgnoreCase);
+                bool setPackageVersionFromBranch = !string.Equals(setPackageVersionStr, "false", StringComparison.OrdinalIgnoreCase);
 
                 // Read git info - prefer using tracked HEAD content, fallback to filesystem
                 var (branch, commitId) = ParseGitInfo(gitInfo.HeadContent, gitInfo.GitDir)
                                        ?? ReadGitInfo(projectDir);
 
-                return new BuildProperties(rootNamespace, branch, commitId, includeCommitIdMetadata);
+                return new BuildProperties(rootNamespace, branch, commitId, includeCommitIdMetadata, generateVersionFile, setPackageVersionFromBranch);
             });
 
         // Look for AppVersionConfigAttribute in assembly attributes
@@ -146,9 +152,12 @@ public sealed class AppVersionGenerator : IIncrementalGenerator
             string assemblyAttributesSource = GenerateAssemblyAttributes(versionInfo);
             ctx.AddSource("AssemblyVersionInfo.g.cs", SourceText.From(assemblyAttributesSource, Encoding.UTF8));
 
-            // Generate version file writer helper (always in fixed namespace for MSBuild to find)
-            string writerSource = GenerateVersionFileWriter(versionInfo, branch, commitId);
-            ctx.AddSource("VersionFileWriter.g.cs", SourceText.From(writerSource, Encoding.UTF8));
+            // Generate version file writer helper only when needed (GenerateVersionFile or SetPackageVersionFromBranch)
+            if (buildProps.GenerateVersionFile || buildProps.SetPackageVersionFromBranch)
+            {
+                string writerSource = GenerateVersionFileWriter(versionInfo, branch, commitId);
+                ctx.AddSource("VersionFileWriter.g.cs", SourceText.From(writerSource, Encoding.UTF8));
+            }
         });
     }
 
@@ -395,6 +404,6 @@ public sealed class AppVersionGenerator : IIncrementalGenerator
     }
 #pragma warning restore RS1035
 
-    private sealed record BuildProperties(string? RootNamespace, string? Branch, string? CommitId, bool IncludeCommitIdMetadata);
+    private sealed record BuildProperties(string? RootNamespace, string? Branch, string? CommitId, bool IncludeCommitIdMetadata, bool GenerateVersionFile, bool SetPackageVersionFromBranch);
     private sealed record AppVersionConfig(string? Namespace, string? ClassName);
 }

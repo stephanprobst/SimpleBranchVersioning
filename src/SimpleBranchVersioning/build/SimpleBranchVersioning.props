@@ -16,6 +16,8 @@
         <CompilerVisibleProperty Include="RootNamespace" />
         <CompilerVisibleProperty Include="ProjectDir" />
         <CompilerVisibleProperty Include="IncludeCommitIdMetadata" />
+        <CompilerVisibleProperty Include="GenerateVersionFile" />
+        <CompilerVisibleProperty Include="SetPackageVersionFromBranch" />
     </ItemGroup>
 
     <!-- Find the .git directory by walking up from ProjectDir (using forward slashes for cross-platform) -->
