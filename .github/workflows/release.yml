@@ -34,13 +34,13 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --no-restore -c Release
+        run: dotnet build --no-restore -c Release -p:Version=${{ steps.version.outputs.version }}
 
       - name: Test
         run: dotnet test --no-build -c Release --verbosity normal
 
       - name: Pack
-        run: dotnet pack src/SimpleBranchVersioning/SimpleBranchVersioning.csproj --no-build -c Release -o ./artifacts
+        run: dotnet pack src/SimpleBranchVersioning/SimpleBranchVersioning.csproj --no-build -c Release -o ./artifacts -p:Version=${{ steps.version.outputs.version }}
 
       - name: NuGet login
         id: nuget-login
