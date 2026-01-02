@@ -43,12 +43,13 @@ jobs:
         run: dotnet pack src/SimpleBranchVersioning/SimpleBranchVersioning.csproj --no-build -c Release -o ./artifacts
 
       - name: NuGet login
+        id: nuget-login
         uses: nuget/login@v1
         with:
           user: ${{ secrets.NUGET_USER }}
 
       - name: Publish to NuGet
-        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ env.NUGET_AUTH_TOKEN }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ steps.nuget-login.outputs.token }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
