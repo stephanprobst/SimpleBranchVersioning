@@ -50,5 +50,10 @@ jobs:
           generate_release_notes: true
           files: ./artifacts/*.nupkg
 
+      - name: NuGet login
+        uses: nuget/login@v1
+        with:
+          nuget-username: ${{ secrets.NUGET_USER }}
+
       - name: Publish to NuGet
-        run: dotnet nuget push ./artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ env.NUGET_AUTH_TOKEN }} --source https://api.nuget.org/v3/index.json --skip-duplicate
