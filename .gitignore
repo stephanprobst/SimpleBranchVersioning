@@ -1,6 +1,42 @@
+# Build outputs
 bin/
 obj/
 /packages/
+
+# IDE - Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE - JetBrains Rider
+.idea/
+*.sln.iml
 riderModule.iml
 /_ReSharper.Caches/
-.idea/
+
+# IDE - VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Test results
+TestResults/
+*.trx
+
+# User-specific files
+*.rsuser
+launchSettings.json
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
