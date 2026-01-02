@@ -72,6 +72,20 @@ public static class AppVersion
 
 ## CI/CD Integration
 
+### GitHub Actions
+
+By default, GitHub Actions checks out PRs in detached HEAD state, which results in version `detached.<commit-id>`. To get the actual branch name, configure the checkout action:
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    ref: ${{ github.head_ref }}  # Checkout the actual branch, not the merge commit
+```
+
+For push events on branches, the default checkout works correctly.
+
+### Version File
+
 Enable `GenerateVersionFile` to output version information during build:
 
 ```xml
@@ -80,7 +94,7 @@ Enable `GenerateVersionFile` to output version information during build:
 </PropertyGroup>
 ```
 
-The file is written to `$(OutputPath)/version.json`.
+The file is written to `$(OutputPath)/version.json` and is included in `dotnet publish` output.
 
 ## Requirements
 
