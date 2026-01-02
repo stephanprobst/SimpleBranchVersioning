@@ -67,6 +67,9 @@ else
             <VersionFileOutputPath Condition="'$(VersionFileOutputPath)' == ''">$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(OutputPath)', 'version.json'))</VersionFileOutputPath>
         </PropertyGroup>
         <GenerateVersionFileTask AssemblyPath="$(TargetPath)" OutputPath="$(VersionFileOutputPath)" />
+        <ItemGroup>
+            <ContentWithTargetPath Include="$(VersionFileOutputPath)" TargetPath="version.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+        </ItemGroup>
     </Target>
 
     <!-- Task to read PackageVersion from version.json for NuGet packaging -->
