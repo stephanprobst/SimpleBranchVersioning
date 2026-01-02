@@ -1,0 +1,34 @@
+<Project>
+    <PropertyGroup>
+        <GenerateVersionFile Condition="'$(GenerateVersionFile)' == ''">false</GenerateVersionFile>
+    </PropertyGroup>
+
+    <UsingTask TaskName="GenerateVersionFileTask" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+        <ParameterGroup>
+            <AssemblyPath ParameterType="System.String" Required="true" />
+            <OutputPath ParameterType="System.String" Required="true" />
+        </ParameterGroup>
+        <Task>
+            <Using Namespace="System.Reflection" />
+            <Code Type="Fragment" Language="cs">
+<![CDATA[
+var assembly = Assembly.LoadFrom(AssemblyPath);
+var writerType = assembly.GetType("SimpleBranchVersioning.Generated.VersionFileWriter");
+if (writerType != null)
+{
+    var method = writerType.GetMethod("WriteJson", BindingFlags.Public | BindingFlags.Static);
+    method.Invoke(null, new object[] { OutputPath });
+    Log.LogMessage(MessageImportance.Normal, "Generated version file: " + OutputPath);
+}
+]]>
+            </Code>
+        </Task>
+    </UsingTask>
+
+    <Target Name="GenerateVersionFile" AfterTargets="Build" Condition="'$(GenerateVersionFile)' == 'true'">
+        <PropertyGroup>
+            <VersionFileOutputPath Condition="'$(VersionFileOutputPath)' == ''">$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(OutputPath)', 'version.json'))</VersionFileOutputPath>
+        </PropertyGroup>
+        <GenerateVersionFileTask AssemblyPath="$(TargetPath)" OutputPath="$(VersionFileOutputPath)" />
+    </Target>
+</Project>
