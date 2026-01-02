@@ -14,6 +14,13 @@
         <PackageTags>source-generator;versioning;git;roslyn</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/stephanprobst/SimpleBranchVersioning</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/stephanprobst/SimpleBranchVersioning</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+
+        <!-- SourceLink for debugging support -->
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
 
         <!-- Analyzer Package Configuration -->
         <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -22,7 +29,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
@@ -32,6 +40,9 @@
         <!-- Pack build files for consumer projects -->
         <None Include="build\SimpleBranchVersioning.props" Pack="true" PackagePath="build" />
         <None Include="build\SimpleBranchVersioning.targets" Pack="true" PackagePath="build" />
+
+        <!-- Pack README for NuGet -->
+        <None Include="..\..\README.md" Pack="true" PackagePath="" />
     </ItemGroup>
 
 </Project>
