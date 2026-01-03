@@ -426,3 +426,11 @@ dotnet_diagnostic.RCS1102.severity = suggestion
 
 # RCS1213: Remove unused member declaration
 dotnet_diagnostic.RCS1213.severity = warning
+
+###############################
+# Test Files
+###############################
+[*Tests.cs]
+
+# Disable async suffix requirement for test methods
+dotnet_naming_rule.async_methods_should_end_with_async.severity = none
