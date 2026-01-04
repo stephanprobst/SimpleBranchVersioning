@@ -19,5 +19,9 @@
     <!-- Testing -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="TUnit" Version="1.9.2" />
+
+    <!-- Testing - Source Generator -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.4" />
   </ItemGroup>
 </Project>

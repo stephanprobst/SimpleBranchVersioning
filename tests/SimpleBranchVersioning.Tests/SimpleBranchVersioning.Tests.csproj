@@ -8,6 +8,8 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
         <PackageReference Include="TUnit" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+        <PackageReference Include="Basic.Reference.Assemblies.Net80" />
     </ItemGroup>
 
     <ItemGroup>

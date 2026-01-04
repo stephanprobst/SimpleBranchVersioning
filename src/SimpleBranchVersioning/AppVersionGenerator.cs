@@ -235,8 +235,7 @@ public sealed class AppVersionGenerator : IIncrementalGenerator
             """;
     }
 
-    private static string EscapeJson(string value) =>
-        value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+    private static string EscapeJson(string value) => value.Replace("\\", @"\\").Replace("\"", "\\\"");
 
     private static string GenerateSource(string? namespaceName, string className, VersionInfo versionInfo, string branch, string commitId)
     {
