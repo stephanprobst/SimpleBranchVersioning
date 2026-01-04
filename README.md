@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/stephanprobst/SimpleBranchVersioning/actions/workflows/build.yml/badge.svg)](https://github.com/stephanprobst/SimpleBranchVersioning/actions/workflows/build.yml)
 [![NuGet](https://img.shields.io/nuget/v/SimpleBranchVersioning.svg)](https://www.nuget.org/packages/SimpleBranchVersioning)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A .NET source generator that derives version information from Git branch names.
 
@@ -73,22 +74,22 @@ public static class AppVersion
 
 ## CI/CD Integration
 
-### GitHub Actions
+For regular branch builds (push events), SimpleBranchVersioning works automatically - no configuration needed.
 
-By default, GitHub Actions checks out PRs in detached HEAD state, which results in version `detached.<commit-id>`. To get the actual branch name while still testing the merged result, use the `SimpleBranchVersioning_Branch` property:
+### Pull Request Builds
+
+CI systems usually check out PRs in a detached HEAD state, which results in version `detached.<commit-id>`. You can override the branch name using the `SimpleBranchVersioning_Branch` MSBuild property.
+
+**GitHub Actions example:**
 
 ```yaml
-- uses: actions/checkout@v4  # Default checkout tests the merge result
+- uses: actions/checkout@v6
 
 - name: Build
   run: dotnet build -p:SimpleBranchVersioning_Branch=${{ github.head_ref }}
 ```
 
-This approach:
-- Tests the actual merge result (catches integration issues)
-- Uses the correct branch name for versioning
-
-For push events on branches, the default checkout works correctly without any override.
+For other CI systems, use your platform's branch variable with `-p:SimpleBranchVersioning_Branch=<branch>`.
 
 ### Version File
 
