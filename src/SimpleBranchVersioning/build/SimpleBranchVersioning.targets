@@ -25,37 +25,7 @@ if (writerType != null)
 }
 else
 {
-    // Fallback: search all types for one with PackageVersion field (custom class name)
-    foreach (var type in assembly.GetTypes())
-    {
-        var field = type.GetField("PackageVersion", BindingFlags.Public | BindingFlags.Static);
-        if (field != null)
-        {
-            // Found the version class, generate JSON manually
-            string version = (string)type.GetField("Version", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
-            string branch = (string)type.GetField("Branch", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
-            string commitId = (string)type.GetField("CommitId", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
-            string packageVersion = (string)field.GetValue(null) ?? "";
-            string assemblyVersion = (string)type.GetField("AssemblyVersion", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
-            string fileVersion = (string)type.GetField("FileVersion", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
-            string informationalVersion = (string)type.GetField("InformationalVersion", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? "";
-
-            string json = "{\n" +
-                "  \"Version\": \"" + version + "\",\n" +
-                "  \"Branch\": \"" + branch + "\",\n" +
-                "  \"CommitId\": \"" + commitId + "\",\n" +
-                "  \"PackageVersion\": \"" + packageVersion + "\",\n" +
-                "  \"AssemblyVersion\": \"" + assemblyVersion + "\",\n" +
-                "  \"FileVersion\": \"" + fileVersion + "\",\n" +
-                "  \"InformationalVersion\": \"" + informationalVersion + "\"\n" +
-                "}";
-
-            Directory.CreateDirectory(Path.GetDirectoryName(OutputPath));
-            File.WriteAllText(OutputPath, json);
-            Log.LogMessage(MessageImportance.Normal, "Generated version file: " + OutputPath);
-            break;
-        }
-    }
+    Log.LogWarning("SimpleBranchVersioning: VersionFileWriter type not found. Ensure the source generator is running correctly.");
 }
 ]]>
             </Code>
