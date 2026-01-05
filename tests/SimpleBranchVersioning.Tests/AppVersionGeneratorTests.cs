@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using SimpleBranchVersioning.Tests.Helpers;
 
 namespace SimpleBranchVersioning.Tests;
@@ -53,7 +54,7 @@ public class AppVersionGeneratorTests
             branchOverride: "main");
 
         var errors = result.Diagnostics
-            .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error);
+            .Where(d => d.Severity == DiagnosticSeverity.Error);
 
         await Assert.That(errors).IsEmpty();
     }
@@ -460,6 +461,41 @@ public class AppVersionGeneratorTests
         string generatedSource = result.GetRequiredGeneratedSource("AppVersion.g.cs");
 
         await Assert.That(generatedSource).Contains("""Branch = "main""");
+    }
+
+    #endregion
+
+    #region Diagnostic Tests
+
+    [Test]
+    public async Task Generator_ReportsVersionDetectedDiagnostic()
+    {
+        var result = GeneratorTestHelper.RunGenerator(
+            MinimalSource,
+            branchOverride: "release/v1.2.3");
+
+        var diagnostic = result.GeneratorDiagnostics
+            .FirstOrDefault(d => string.Equals(d.Id, "SBV001", StringComparison.Ordinal));
+
+        await Assert.That(diagnostic).IsNotNull();
+        await Assert.That(diagnostic!.Severity).IsEqualTo(DiagnosticSeverity.Info);
+    }
+
+    [Test]
+    public async Task Generator_VersionDetectedDiagnostic_ContainsVersionInfo()
+    {
+        var result = GeneratorTestHelper.RunGenerator(
+            MinimalSource,
+            branchOverride: "release/v2.0.0");
+
+        var diagnostic = result.GeneratorDiagnostics
+            .FirstOrDefault(d => string.Equals(d.Id, "SBV001", StringComparison.Ordinal));
+
+        await Assert.That(diagnostic).IsNotNull();
+
+        string message = diagnostic!.GetMessage();
+        await Assert.That(message).Contains("2.0.0");
+        await Assert.That(message).Contains("release/v2.0.0");
     }
 
     #endregion
