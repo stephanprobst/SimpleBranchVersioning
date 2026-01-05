@@ -130,4 +130,11 @@ public sealed record GeneratorTestResult(
         => DriverRunResult.Results
             .SelectMany(r => r.GeneratedSources)
             .Select(s => s.HintName);
+
+    /// <summary>
+    /// Gets diagnostics reported by the generator.
+    /// </summary>
+    public IEnumerable<Diagnostic> GeneratorDiagnostics
+        => DriverRunResult.Results
+            .SelectMany(r => r.Diagnostics);
 }
