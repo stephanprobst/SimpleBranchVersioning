@@ -26,5 +26,15 @@ jobs:
       - name: Build
         run: dotnet build --no-restore -c Release
 
-      - name: Test
-        run: dotnet test --no-build -c Release --verbosity normal
+      - name: Test with Coverage
+        run: |
+          dotnet tool install -g dotnet-coverage
+          dotnet-coverage collect -f cobertura -o ./coverage/coverage.cobertura.xml "dotnet test --no-build -c Release --verbosity normal"
+
+      - name: Generate Coverage Report
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          reportgenerator -reports:./coverage/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:"MarkdownSummaryGithub"
+
+      - name: Add Coverage to Job Summary
+        run: cat ./coverage/report/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
