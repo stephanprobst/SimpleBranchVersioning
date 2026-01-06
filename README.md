@@ -103,6 +103,12 @@ Enable `GenerateVersionFile` to output version information during build:
 
 The file is written to `$(OutputPath)/version.json` and is included in `dotnet publish` output.
 
+## Analyzers
+
+SimpleBranchVersioning includes built-in analyzers that provide build-time feedback about version detection and potential issues with branch names.
+
+See [AnalyzerReleases.Shipped.md](src/SimpleBranchVersioning/AnalyzerReleases.Shipped.md) for the list of available diagnostics.
+
 ## Requirements
 
 - .NET SDK 8.0 or later

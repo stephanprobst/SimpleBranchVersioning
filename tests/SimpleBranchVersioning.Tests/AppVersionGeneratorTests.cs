@@ -498,5 +498,98 @@ public class AppVersionGeneratorTests
         await Assert.That(message).Contains("release/v2.0.0");
     }
 
+    [Test]
+    [Arguments("feature/test_underscore", "'_'")]
+    [Arguments("feature/user@name", "'@'")]
+    [Arguments("feature/test+plus", "'+'")]
+    public async Task Generator_InvalidNuGetChars_ReportsSBV002Warning(
+        string branch, string expectedInvalidChar)
+    {
+        var result = GeneratorTestHelper.RunGenerator(
+            MinimalSource,
+            branchOverride: branch);
+
+        var diagnostic = result.GeneratorDiagnostics
+            .FirstOrDefault(d => string.Equals(d.Id, "SBV002", StringComparison.Ordinal));
+
+        await Assert.That(diagnostic).IsNotNull();
+        await Assert.That(diagnostic!.Severity).IsEqualTo(DiagnosticSeverity.Warning);
+        await Assert.That(diagnostic.GetMessage()).Contains(expectedInvalidChar);
+    }
+
+    [Test]
+    [Arguments("feature/valid-name")]
+    [Arguments("bugfix/issue-42")]
+    [Arguments("main")]
+    public async Task Generator_ValidNuGetChars_DoesNotReportSBV002(string branch)
+    {
+        var result = GeneratorTestHelper.RunGenerator(
+            MinimalSource,
+            branchOverride: branch);
+
+        var diagnostic = result.GeneratorDiagnostics
+            .FirstOrDefault(d => string.Equals(d.Id, "SBV002", StringComparison.Ordinal));
+
+        await Assert.That(diagnostic).IsNull();
+    }
+
+    [Test]
+    public async Task Generator_ReleaseBranch_DoesNotReportSBV002()
+    {
+        var result = GeneratorTestHelper.RunGenerator(
+            MinimalSource,
+            branchOverride: "release/v1.2.3");
+
+        var diagnostic = result.GeneratorDiagnostics
+            .FirstOrDefault(d => string.Equals(d.Id, "SBV002", StringComparison.Ordinal));
+
+        await Assert.That(diagnostic).IsNull();
+    }
+
+    [Test]
+    public async Task Generator_ExcessiveBranchLength_ReportsSBV003Warning()
+    {
+        string longBranch = "feature/" + new string('a', 150);
+
+        var result = GeneratorTestHelper.RunGenerator(
+            MinimalSource,
+            branchOverride: longBranch);
+
+        var diagnostic = result.GeneratorDiagnostics
+            .FirstOrDefault(d => string.Equals(d.Id, "SBV003", StringComparison.Ordinal));
+
+        await Assert.That(diagnostic).IsNotNull();
+        await Assert.That(diagnostic!.Severity).IsEqualTo(DiagnosticSeverity.Warning);
+        await Assert.That(diagnostic.GetMessage()).Contains("128");
+    }
+
+    [Test]
+    public async Task Generator_NormalBranchLength_DoesNotReportSBV003()
+    {
+        var result = GeneratorTestHelper.RunGenerator(
+            MinimalSource,
+            branchOverride: "feature/normal-length-branch");
+
+        var diagnostic = result.GeneratorDiagnostics
+            .FirstOrDefault(d => string.Equals(d.Id, "SBV003", StringComparison.Ordinal));
+
+        await Assert.That(diagnostic).IsNull();
+    }
+
+    [Test]
+    public async Task Generator_ReleaseBranch_DoesNotReportSBV003()
+    {
+        string longReleaseBranch = "release/v1.2.3-" + new string('a', 150);
+
+        var result = GeneratorTestHelper.RunGenerator(
+            MinimalSource,
+            branchOverride: longReleaseBranch);
+
+        var diagnostic = result.GeneratorDiagnostics
+            .FirstOrDefault(d => string.Equals(d.Id, "SBV003", StringComparison.Ordinal));
+
+        await Assert.That(diagnostic).IsNull();
+    }
+
     #endregion
 }
