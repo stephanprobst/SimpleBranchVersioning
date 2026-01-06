@@ -28,6 +28,13 @@ public static class VersionCalculator
         TimeSpan.FromSeconds(1));
 
     /// <summary>
+    /// Determines if the branch name matches the release branch pattern.
+    /// </summary>
+    /// <param name="branch">The git branch name.</param>
+    /// <returns>True if this is a release branch.</returns>
+    public static bool IsReleaseBranch(string branch) => ReleasePattern.IsMatch(branch);
+
+    /// <summary>
     /// Calculates all version formats based on branch name and commit ID.
     /// </summary>
     /// <param name="branch">The git branch name.</param>
