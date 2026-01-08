@@ -1,6 +1,7 @@
 # SimpleBranchVersioning
 
 [![Build](https://github.com/stephanprobst/SimpleBranchVersioning/actions/workflows/build.yml/badge.svg)](https://github.com/stephanprobst/SimpleBranchVersioning/actions/workflows/build.yml)
+[![Coverage](https://raw.githubusercontent.com/stephanprobst/SimpleBranchVersioning/coverage/badge_linecoverage.svg)](https://github.com/stephanprobst/SimpleBranchVersioning/actions/workflows/build.yml)
 [![NuGet](https://img.shields.io/nuget/v/SimpleBranchVersioning.svg)](https://www.nuget.org/packages/SimpleBranchVersioning)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
