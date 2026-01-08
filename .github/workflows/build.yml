@@ -52,11 +52,10 @@ jobs:
           cp ./coverage/report/badge_branchcoverage.svg /tmp/badges/
 
           if git ls-remote --exit-code --heads origin coverage; then
-            git fetch origin coverage
-            git checkout coverage
+            git fetch origin coverage:coverage
+            git switch coverage
           else
-            git checkout --orphan coverage
-            git rm -rf .
+            git switch --orphan coverage
           fi
 
           cp /tmp/badges/*.svg .
