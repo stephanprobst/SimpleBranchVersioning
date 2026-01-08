@@ -63,6 +63,56 @@ public static class GeneratorTestHelper
             driver.GetRunResult());
     }
 
+    /// <summary>
+    /// Runs the AppVersionGenerator with a real git directory structure for integration testing.
+    /// This allows testing the file I/O paths in ParseGitInfo.
+    /// </summary>
+    public static GeneratorTestResult RunGeneratorWithGitDirectory(
+        string sourceCode,
+        string gitHeadFilePath,
+        string? rootNamespace = null,
+        bool includeCommitIdMetadata = true,
+        bool generateVersionFile = false,
+        bool setPackageVersionFromBranch = true)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
+
+        // Use Basic.Reference.Assemblies for compilation references
+        var compilation = CSharpCompilation.Create(
+            assemblyName: "TestAssembly",
+            syntaxTrees: [syntaxTree],
+            references: Basic.Reference.Assemblies.Net80.References.All,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        // Build editorconfig content for global options
+        string editorConfig = BuildEditorConfig(
+            branchOverride: null,
+            rootNamespace,
+            includeCommitIdMetadata,
+            generateVersionFile,
+            setPackageVersionFromBranch);
+
+        // Create additional texts using the real file path
+        ImmutableArray<AdditionalText> additionalTexts = [new FileBasedAdditionalText(gitHeadFilePath)];
+
+        // Configure driver with options
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(
+            generators: [new AppVersionGenerator().AsSourceGenerator()],
+            additionalTexts: additionalTexts,
+            parseOptions: (CSharpParseOptions)syntaxTree.Options,
+            optionsProvider: new TestAnalyzerConfigOptionsProvider(editorConfig));
+
+        driver = driver.RunGeneratorsAndUpdateCompilation(
+            compilation,
+            out var outputCompilation,
+            out var diagnostics);
+
+        return new GeneratorTestResult(
+            outputCompilation,
+            diagnostics,
+            driver.GetRunResult());
+    }
+
     private static string BuildEditorConfig(
         string? branchOverride,
         string? rootNamespace,
