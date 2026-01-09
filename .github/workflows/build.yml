@@ -38,7 +38,38 @@ jobs:
           dotnet tool install -g dotnet-reportgenerator-globaltool
           reportgenerator -reports:./coverage/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:"MarkdownSummaryGithub;Badges" -assemblyfilters:"+SimpleBranchVersioning"
 
+      - name: Check Coverage Thresholds
+        run: |
+          LINE_THRESHOLD=85
+          BRANCH_THRESHOLD=75
+
+          LINE_RATE=$(grep -oP 'line-rate="\K[^"]+' ./coverage/coverage.cobertura.xml | head -1)
+          BRANCH_RATE=$(grep -oP 'branch-rate="\K[^"]+' ./coverage/coverage.cobertura.xml | head -1)
+
+          LINE_PCT=$(echo "$LINE_RATE * 100" | bc -l | xargs printf "%.1f")
+          BRANCH_PCT=$(echo "$BRANCH_RATE * 100" | bc -l | xargs printf "%.1f")
+
+          echo "Line coverage: $LINE_PCT% (threshold: $LINE_THRESHOLD%)"
+          echo "Branch coverage: $BRANCH_PCT% (threshold: $BRANCH_THRESHOLD%)"
+
+          FAILED=0
+          if (( $(echo "$LINE_PCT < $LINE_THRESHOLD" | bc -l) )); then
+            echo "::error::Line coverage $LINE_PCT% is below threshold of $LINE_THRESHOLD%"
+            FAILED=1
+          fi
+          if (( $(echo "$BRANCH_PCT < $BRANCH_THRESHOLD" | bc -l) )); then
+            echo "::error::Branch coverage $BRANCH_PCT% is below threshold of $BRANCH_THRESHOLD%"
+            FAILED=1
+          fi
+
+          if [ $FAILED -eq 1 ]; then
+            exit 1
+          fi
+
+          echo "::notice::Coverage thresholds met!"
+
       - name: Add Coverage to Job Summary
+        if: always()
         run: cat ./coverage/report/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
 
       - name: Publish Coverage Badge
