@@ -26,7 +26,9 @@ jobs:
             10.0.x
 
       - name: Build Example Apps
-        run: dotnet build tests/SimpleBranchVersioning.ExampleApp tests/SimpleBranchVersioning.ConfiguredApp -c Release
+        run: |
+          dotnet build tests/SimpleBranchVersioning.ExampleApp -c Release
+          dotnet build tests/SimpleBranchVersioning.ConfiguredApp -c Release
 
       - name: Run ExampleApp
         run: dotnet run --project tests/SimpleBranchVersioning.ExampleApp -f net${{ matrix.dotnet-version }} -c Release --no-build
