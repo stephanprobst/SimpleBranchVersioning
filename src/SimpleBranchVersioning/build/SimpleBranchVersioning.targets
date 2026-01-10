@@ -32,7 +32,7 @@ else
         </Task>
     </UsingTask>
 
-    <Target Name="GenerateVersionFile" AfterTargets="Build" Condition="'$(GenerateVersionFile)' == 'true'">
+    <Target Name="GenerateVersionFile" AfterTargets="Build" Condition="'$(GenerateVersionFile)' == 'true' and '$(TargetFramework)' != ''">
         <PropertyGroup>
             <VersionFileOutputPath Condition="'$(VersionFileOutputPath)' == ''">$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(OutputPath)', 'version.json'))</VersionFileOutputPath>
         </PropertyGroup>
@@ -75,7 +75,7 @@ else
             AfterTargets="GenerateVersionFile"
             DependsOnTargets="GenerateVersionFileInternal"
             BeforeTargets="GenerateNuspec;Pack"
-            Condition="'$(SetPackageVersionFromBranch)' == 'true'">
+            Condition="'$(SetPackageVersionFromBranch)' == 'true' and '$(TargetFramework)' != ''">
         <ReadPackageVersionFromJsonTask JsonPath="$(VersionFileOutputPath)">
             <Output TaskParameter="PackageVersionOutput" PropertyName="Version" />
             <Output TaskParameter="PackageVersionOutput" PropertyName="PackageVersion" />
@@ -86,7 +86,7 @@ else
     <!-- Internal target to generate version.json when SetPackageVersionFromBranch is enabled -->
     <Target Name="GenerateVersionFileInternal"
             AfterTargets="Build"
-            Condition="'$(SetPackageVersionFromBranch)' == 'true'">
+            Condition="'$(SetPackageVersionFromBranch)' == 'true' and '$(TargetFramework)' != ''">
         <PropertyGroup>
             <VersionFileOutputPath Condition="'$(VersionFileOutputPath)' == ''">$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(OutputPath)', 'version.json'))</VersionFileOutputPath>
         </PropertyGroup>
