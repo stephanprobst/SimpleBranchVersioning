@@ -6,7 +6,53 @@ on:
       - 'release/v*'
 
 jobs:
+  verify-frameworks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: ['8.0', '9.0', '10.0']
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Build Example Apps
+        run: dotnet build tests/SimpleBranchVersioning.ExampleApp tests/SimpleBranchVersioning.ConfiguredApp -c Release
+
+      - name: Run ExampleApp
+        run: dotnet run --project tests/SimpleBranchVersioning.ExampleApp -f net${{ matrix.dotnet-version }} -c Release --no-build
+
+      - name: Run ConfiguredApp
+        run: dotnet run --project tests/SimpleBranchVersioning.ConfiguredApp -f net${{ matrix.dotnet-version }} -c Release --no-build
+
+      - name: Verify version.json
+        run: |
+          # ConfiguredApp should have version.json (GenerateVersionFile=true)
+          if [ ! -f "tests/SimpleBranchVersioning.ConfiguredApp/bin/Release/net${{ matrix.dotnet-version }}/version.json" ]; then
+            echo "::error::ConfiguredApp is missing version.json for net${{ matrix.dotnet-version }}"
+            exit 1
+          fi
+          echo "ConfiguredApp version.json exists for net${{ matrix.dotnet-version }}"
+          cat tests/SimpleBranchVersioning.ConfiguredApp/bin/Release/net${{ matrix.dotnet-version }}/version.json
+
+          # ExampleApp should NOT have version.json (GenerateVersionFile=false by default)
+          if [ -f "tests/SimpleBranchVersioning.ExampleApp/bin/Release/net${{ matrix.dotnet-version }}/version.json" ]; then
+            echo "::error::ExampleApp should not have version.json for net${{ matrix.dotnet-version }}"
+            exit 1
+          fi
+          echo "ExampleApp correctly has no version.json for net${{ matrix.dotnet-version }}"
+
   release:
+    needs: verify-frameworks
     runs-on: ubuntu-latest
     permissions:
       contents: write
