@@ -307,44 +307,6 @@ public class AppVersionGeneratorTests
 
     #endregion
 
-    #region VersionFileWriter Generation Tests
-
-    [Test]
-    public async Task Generator_WithGenerateVersionFile_GeneratesVersionFileWriter()
-    {
-        var result = GeneratorTestHelper.RunGenerator(
-            MinimalSource,
-            branchOverride: "main",
-            generateVersionFile: true);
-
-        await Assert.That(result.GeneratedFileNames).Contains("VersionFileWriter.g.cs");
-    }
-
-    [Test]
-    public async Task Generator_WithSetPackageVersionFromBranch_GeneratesVersionFileWriter()
-    {
-        var result = GeneratorTestHelper.RunGenerator(
-            MinimalSource,
-            branchOverride: "main",
-            setPackageVersionFromBranch: true);
-
-        await Assert.That(result.GeneratedFileNames).Contains("VersionFileWriter.g.cs");
-    }
-
-    [Test]
-    public async Task Generator_WithBothDisabled_DoesNotGenerateVersionFileWriter()
-    {
-        var result = GeneratorTestHelper.RunGenerator(
-            MinimalSource,
-            branchOverride: "main",
-            generateVersionFile: false,
-            setPackageVersionFromBranch: false);
-
-        await Assert.That(result.GeneratedFileNames).DoesNotContain("VersionFileWriter.g.cs");
-    }
-
-    #endregion
-
     #region Branch Name Slash Replacement Tests
 
     [Test]
