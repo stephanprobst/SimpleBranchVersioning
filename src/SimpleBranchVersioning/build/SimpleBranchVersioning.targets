@@ -5,27 +5,99 @@
 
     <UsingTask TaskName="GenerateVersionFileTask" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
         <ParameterGroup>
-            <AssemblyPath ParameterType="System.String" Required="true" />
+            <GeneratedFilesDir ParameterType="System.String" Required="true" />
             <OutputPath ParameterType="System.String" Required="true" />
         </ParameterGroup>
         <Task>
+            <Using Namespace="System.Collections.Generic" />
             <Using Namespace="System.IO" />
-            <Using Namespace="System.Reflection" />
+            <Using Namespace="System.Text" />
+            <Using Namespace="System.Text.RegularExpressions" />
             <Code Type="Fragment" Language="cs">
 <![CDATA[
-// Load assembly from bytes to avoid file locking and assembly identity conflicts
-byte[] assemblyBytes = File.ReadAllBytes(AssemblyPath);
-var assembly = Assembly.Load(assemblyBytes);
-var writerType = assembly.GetType("SimpleBranchVersioning.Generated.VersionFileWriter");
-if (writerType != null)
+// Parse generated source file to extract version info (no assembly loading needed)
+// This avoids issues with test frameworks like TUnit that use module initializers
+var values = new Dictionary<string, string>();
+
+try
 {
-    var method = writerType.GetMethod("WriteJson", BindingFlags.Public | BindingFlags.Static);
-    method.Invoke(null, new object[] { OutputPath });
+    // Find AppVersion.g.cs in generated files directory
+    // Path pattern: generated/SimpleBranchVersioning/SimpleBranchVersioning.AppVersionGenerator/AppVersion.g.cs
+    string sourceFile = null;
+    if (Directory.Exists(GeneratedFilesDir))
+    {
+        // Search for any .g.cs file containing "public const string Version"
+        foreach (string file in Directory.GetFiles(GeneratedFilesDir, "*.g.cs", SearchOption.AllDirectories))
+        {
+            string content = File.ReadAllText(file);
+            if (content.Contains("public const string Version") && content.Contains("public const string PackageVersion"))
+            {
+                sourceFile = file;
+                break;
+            }
+        }
+    }
+
+    if (sourceFile == null)
+    {
+        Log.LogWarning("SimpleBranchVersioning: Generated AppVersion source file not found in " + GeneratedFilesDir + ". Ensure EmitCompilerGeneratedFiles is enabled.");
+        return true;
+    }
+
+    Log.LogMessage(MessageImportance.Low, "SimpleBranchVersioning: Reading version info from " + sourceFile);
+    string sourceContent = File.ReadAllText(sourceFile);
+
+    // Extract const string values using regex
+    // Pattern matches: public const string FieldName = "value";
+    var pattern = new Regex(@"public const string (\w+) = ""([^""]*)"";");
+    foreach (Match match in pattern.Matches(sourceContent))
+    {
+        string fieldName = match.Groups[1].Value;
+        string fieldValue = match.Groups[2].Value;
+        values[fieldName] = fieldValue;
+    }
+
+    if (values.Count == 0)
+    {
+        Log.LogWarning("SimpleBranchVersioning: No version constants found in generated source file.");
+        return true;
+    }
+
+    // Build JSON manually (avoid System.Text.Json dependency for .NET Framework MSBuild compatibility)
+    var sb = new StringBuilder();
+    sb.AppendLine("{");
+
+    string GetValue(string key) { string v; return values.TryGetValue(key, out v) ? v : ""; }
+
+    sb.AppendLine("  \"Version\": \"" + EscapeJson(GetValue("Version")) + "\",");
+    sb.AppendLine("  \"Branch\": \"" + EscapeJson(GetValue("Branch")) + "\",");
+    sb.AppendLine("  \"CommitId\": \"" + EscapeJson(GetValue("CommitId")) + "\",");
+    sb.AppendLine("  \"PackageVersion\": \"" + EscapeJson(GetValue("PackageVersion")) + "\",");
+    sb.AppendLine("  \"AssemblyVersion\": \"" + EscapeJson(GetValue("AssemblyVersion")) + "\",");
+    sb.AppendLine("  \"FileVersion\": \"" + EscapeJson(GetValue("FileVersion")) + "\",");
+    sb.AppendLine("  \"InformationalVersion\": \"" + EscapeJson(GetValue("InformationalVersion")) + "\"");
+    sb.AppendLine("}");
+
+    // Ensure directory exists
+    string dir = Path.GetDirectoryName(OutputPath);
+    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+    {
+        Directory.CreateDirectory(dir);
+    }
+
+    File.WriteAllText(OutputPath, sb.ToString());
     Log.LogMessage(MessageImportance.Normal, "Generated version file: " + OutputPath);
 }
-else
+catch (Exception ex)
 {
-    Log.LogWarning("SimpleBranchVersioning: VersionFileWriter type not found. Ensure the source generator is running correctly.");
+    Log.LogWarning("SimpleBranchVersioning: Failed to generate version file: " + ex.Message);
+}
+
+// Local function to escape JSON strings
+string EscapeJson(string s)
+{
+    if (string.IsNullOrEmpty(s)) return s;
+    return s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
 }
 ]]>
             </Code>
@@ -35,8 +107,9 @@ else
     <Target Name="GenerateVersionFile" AfterTargets="Build" Condition="'$(GenerateVersionFile)' == 'true' and '$(TargetFramework)' != ''">
         <PropertyGroup>
             <VersionFileOutputPath Condition="'$(VersionFileOutputPath)' == ''">$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(OutputPath)', 'version.json'))</VersionFileOutputPath>
+            <SimpleBranchVersioning_GeneratedFilesDir>$(IntermediateOutputPath)generated\</SimpleBranchVersioning_GeneratedFilesDir>
         </PropertyGroup>
-        <GenerateVersionFileTask AssemblyPath="$(TargetPath)" OutputPath="$(VersionFileOutputPath)" />
+        <GenerateVersionFileTask GeneratedFilesDir="$(SimpleBranchVersioning_GeneratedFilesDir)" OutputPath="$(VersionFileOutputPath)" />
         <ItemGroup>
             <ContentWithTargetPath Include="$(VersionFileOutputPath)" TargetPath="version.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
         </ItemGroup>
@@ -89,7 +162,8 @@ else
             Condition="'$(SetPackageVersionFromBranch)' == 'true' and '$(TargetFramework)' != ''">
         <PropertyGroup>
             <VersionFileOutputPath Condition="'$(VersionFileOutputPath)' == ''">$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(OutputPath)', 'version.json'))</VersionFileOutputPath>
+            <SimpleBranchVersioning_GeneratedFilesDir>$(IntermediateOutputPath)generated\</SimpleBranchVersioning_GeneratedFilesDir>
         </PropertyGroup>
-        <GenerateVersionFileTask AssemblyPath="$(TargetPath)" OutputPath="$(VersionFileOutputPath)" />
+        <GenerateVersionFileTask GeneratedFilesDir="$(SimpleBranchVersioning_GeneratedFilesDir)" OutputPath="$(VersionFileOutputPath)" />
     </Target>
 </Project>
