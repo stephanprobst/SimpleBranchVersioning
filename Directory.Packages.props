@@ -5,7 +5,7 @@
 
   <ItemGroup>
     <!-- Analyzers -->
-    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.283" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.286" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.18.0.131500" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
     <PackageVersion Include="AsyncFixer" Version="2.1.0" />
@@ -18,7 +18,7 @@
 
     <!-- Testing -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageVersion Include="TUnit" Version="1.12.0" />
+    <PackageVersion Include="TUnit" Version="1.12.43" />
 
     <!-- Testing - Source Generator -->
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
