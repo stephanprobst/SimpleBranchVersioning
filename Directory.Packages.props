@@ -5,23 +5,23 @@
 
   <ItemGroup>
     <!-- Analyzers -->
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.117" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.27.0.140913" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.122" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.29.0.143774" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
     <PackageVersion Include="AsyncFixer" Version="2.1.0" />
 
     <!-- Source Generator -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />
 
     <!-- SourceLink -->
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
 
     <!-- Testing -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
-    <PackageVersion Include="TUnit" Version="1.56.35" />
+    <PackageVersion Include="TUnit" Version="1.58.0" />
 
     <!-- Testing - Source Generator -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.3.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.6.0" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.9" />
   </ItemGroup>
 </Project>
