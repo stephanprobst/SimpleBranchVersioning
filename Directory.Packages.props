@@ -7,7 +7,7 @@
     <!-- Analyzers -->
     <PackageVersion Include="Meziantou.Analyzer" Version="3.0.138" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.31.0.145097" />
-    <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="5.0.0" />
     <PackageVersion Include="AsyncFixer" Version="2.1.0" />
 
     <!-- Source Generator -->
